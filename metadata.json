@@ -1,0 +1,6 @@
+{
+  "name": "Calculadora Solar REDERAR.app",
+  "description": "Sistema integral interactivo de dimensionamiento solar fotovoltaico autónomo (Off-Grid), inyección distribuida (On-Grid) y equipos térmicos solares para la Red Argentina de Energías Renovables.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

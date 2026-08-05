@@ -1,0 +1,92 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 160" preserveAspectRatio="xMidYMid meet">
+  <rect width="100%" height="100%" fill="#000000" rx="40"/>
+  
+  <!-- 1. Authentic REDERAR Sun - 9 Organic Flame-like Rays -->
+  <g fill="#FDC300">
+    <!-- Ray 1 (far left, pointing up-left) -->
+    <path d="M 88,74 C 79,74 65,71 54,69 C 64,74 76,80 87,80 Z" />
+    
+    <!-- Ray 2 (pointing up-left) -->
+    <path d="M 91,65 C 80,62 68,56 58,51 C 69,57 80,64 90,68 Z" />
+    
+    <!-- Ray 3 (pointing up-left) -->
+    <path d="M 95,57 C 85,50 75,44 65,37 C 74,45 83,52 91,58 Z" />
+    
+    <!-- Ray 4 (pointing up-left) -->
+    <path d="M 101,50 C 92,40 84,33 80,24 C 87,32 93,42 98,49 Z" />
+    
+    <!-- Ray 5 (top-center wavy flame) -->
+    <path d="M 107,46 C 104,36 108,24 116,13 C 112,25 111,36 113,46 Z" />
+    
+    <!-- Ray 6 (pointing up-right) -->
+    <path d="M 116,47 C 122,38 129,31 136,24 C 131,33 126,43 121,50 Z" />
+    
+    <!-- Ray 7 (pointing up-right) -->
+    <path d="M 122,54 C 132,47 142,41 152,35 C 143,43 134,50 127,57 Z" />
+    
+    <!-- Ray 8 (pointing up-right) -->
+    <path d="M 128,62 C 139,59 151,54 161,51 C 150,57 139,63 130,67 Z" />
+    
+    <!-- Ray 9 (far right, pointing down-right) -->
+    <path d="M 132,73 C 141,73 156,71 166,69 C 156,73 144,79 134,79 Z" />
+
+    <!-- Outer Golden Disk of the Sun Core (radius 24) -->
+    <circle cx="110" cy="74" r="24" />
+  </g>
+
+  <!-- Concentric white ring mapping 3D visual detailing in the core -->
+  <circle cx="110" cy="74" r="19.5" fill="none" stroke="#FFFFFF" stroke-width="2.2" />
+
+  <!-- Inner Golden Center inside the white ring -->
+  <circle cx="110" cy="74" r="18.1" fill="#FDC300" />
+
+  <!-- 2. Dark Blue Wave (Underlayer) -->
+  <path
+    d="M 45,86 
+       C 72,99, 108,107, 142,98 
+       C 162,93, 178,82, 186,74 
+       C 163,92, 128,111, 105,104 
+       C 80,97, 55,90, 45,86 Z"
+    fill="#0D58A6"
+  />
+
+  <!-- 3. Light Blue (Cyan/Teal) Wave (Overlayer) -->
+  <path
+    d="M 15,70 
+       C 40,43, 85,51, 110,76 
+       C 130,95, 175,66, 205,62 
+       C 175,76, 130,108, 105,91 
+       C 80,74, 40,78, 15,70 Z"
+    fill="#00ADEF"
+  />
+
+  <!-- 4. "REDERAR" Typography. 
+      Uses paint-order to stroke behind the white fill for high fidelity, sharp letters. -->
+  <text
+    x="110"
+    y="126"
+    text-anchor="middle"
+    font-family="'Arial Narrow', 'Impact', 'Oswald', sans-serif"
+    font-size="34"
+    font-weight="800"
+    letter-spacing="-0.6px"
+    paint-order="stroke fill"
+  >
+    <tspan fill="#FFFFFF" stroke="#0D58A6" stroke-width="2.6" stroke-linejoin="miter">REDER</tspan>
+    <tspan fill="#00ADEF" stroke="none">AR</tspan>
+  </text>
+
+  <!-- 5. "ENERGÍAS RENOVABLES" Sub-Text in yellow -->
+  <text
+    x="110"
+    y="145"
+    text-anchor="middle"
+    font-family="'Arial Narrow', 'Impact', 'Oswald', sans-serif"
+    font-size="11.5"
+    font-weight="bold"
+    fill="#FDC300"
+    letter-spacing="0.8"
+  >
+    ENERGÍAS RENOVABLES
+  </text>
+</svg>

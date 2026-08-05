@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Calculadora Solar REDERAR.app</title>
+    <meta name="theme-color" content="#0a0f1d" />
+    <link rel="apple-touch-icon" href="/icon.svg" />
+    <link rel="icon" type="image/svg+xml" href="/icon.svg" />
+
+    <!-- Google Fonts direct loading for cross-browser and legacy OS compatibility -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&family=Oswald:wght@500;700&display=swap" rel="stylesheet">
+
+    <!-- Meta Tags para Compartir en Redes Sociales (WhatsApp, Instagram, etc.) -->
+    <meta name="description" content="Calculadora Solar REDERAR - Dimensiona tu sistema solar On-Grid, Off-Grid o Termotanque Solar gratis con tus primeros 3 cálculos incluidos de regalo." />
+    
+    <!-- Open Graph (Facebook, WhatsApp, Instagram) -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Calculadora Solar REDERAR - Dimensionador Profesional" />
+    <meta property="og:description" content="¡Calcula tu sistema solar On-Grid, Off-Grid o Térmico al instante! Pruébalo gratis con tus primeros 3 cálculos incluidos de regalo. Planos dinámicos, listado de materiales y presupuestos automatizados." />
+    <meta property="og:url" content="https://ais-pre-7qohcz4nv3gav6abvdwh5a-799481991429.us-east1.run.app" />
+    <meta property="og:image" content="https://ais-pre-7qohcz4nv3gav6abvdwh5a-799481991429.us-east1.run.app/logo.jpg" />
+    <meta property="og:image:type" content="image/jpeg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+
+    <!-- Dinámicamente adaptar Open Graph al dominio actual (compatible con todos los sistemas y navegadores) -->
+    <script>
+      (function() {
+        try {
+          var origin = window.location.origin || (window.location.protocol + '//' + window.location.host);
+          var tags = {
+            'meta[property="og:url"]': origin,
+            'meta[property="og:image"]': origin + '/logo.jpg',
+            'meta[name="twitter:image"]': origin + '/logo.jpg'
+          };
+          for (var selector in tags) {
+            var el = document.querySelector(selector);
+            if (el) {
+              el.setAttribute('content', tags[selector]);
+            }
+          }
+        } catch (e) {
+          console.warn('Metadata dynamic update skipped:', e);
+        }
+      })();
+    </script>
+
+    <!-- Twitter / X -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Calculadora Solar REDERAR - Dimensionador Profesional" />
+    <meta name="twitter:description" content="Dimensiona tu sistema solar On-Grid, Off-Grid o Térmico al instante. Incluye 3 cálculos de prueba gratis." />
+    <meta name="twitter:image" content="https://ais-pre-7qohcz4nv3gav6abvdwh5a-799481991429.us-east1.run.app/logo.jpg" />
+  </head>
+  <body>
+    <!-- Universal Compatibility Shell & Error Guard for Legacy Operating Systems (Windows XP+, Android 1.0+, WebVew) -->
+    <div id="legacy-fallback" style="display: none; font-family: Arial, sans-serif; background-color: #000; color: #fff; min-height: 100vh; padding: 20px; box-sizing: border-box; text-align: center;">
+      <div style="max-width: 500px; margin: 40px auto; border: 2px solid #f59e0b; padding: 30px; border-radius: 12px; background: #0a0f1d; box-shadow: 0 0 30px rgba(245,158,11,0.2);">
+        <h2 style="color: #ffd200; margin-top: 0; font-size: 24px; font-weight: bold;">Calculadora Solar REDERAR.app</h2>
+        <p style="font-size: 14px; line-height: 1.6; color: #cbd5e1;">Detectamos que estás ingresando desde un sistema operativo o navegador legacy que no soporta las tecnologías web modernas necesarias para el cálculo solar interactivo.</p>
+        <p style="font-size: 14px; line-height: 1.6; color: #f59e0b; font-weight: bold;">¡No te preocupes! Hacemos todo el dimensionamiento a medida por ti.</p>
+        <div style="margin: 24px 0; background: rgba(245,158,11,0.05); padding: 15px; border-radius: 8px; border: 1px dashed rgba(245,158,11,0.3);">
+          <p style="margin: 0 0 10px 0; font-size: 13px; color: #94a3b8;">Contáctanos directamente por WhatsApp o llamada al:</p>
+          <a href="https://wa.me/543434802264" style="display: inline-block; background: #25d366; color: #fff; padding: 10px 20px; border-radius: 20px; text-decoration: none; font-weight: bold; font-size: 14px; margin-top: 5px; box-shadow: 0 4px 10px rgba(37,211,102,0.3);">Enviar Mensaje de WhatsApp</a>
+        </div>
+        <p style="font-size: 12px; color: #64748b;">(Compatible con Windows XP, Win 7, Win 10, Win 11, Linux, macOS, Android 1.0+ e iOS)</p>
+      </div>
+    </div>
+
+    <script>
+      // Test browser capabilities (ES6 specifications, promises, Arrow functions)
+      (function() {
+        var isModern = true;
+        try {
+          new Function("() => { const x = 0; return `test${x}`; }")();
+          if (typeof Promise === 'undefined' || typeof document.querySelector === 'undefined' || !('localStorage' in window)) {
+            isModern = false;
+          }
+        } catch(e) {
+          isModern = false;
+        }
+
+        if (!isModern) {
+          var root = document.getElementById('root');
+          if (root) root.style.display = 'none';
+          var fb = document.getElementById('legacy-fallback');
+          if (fb) fb.style.display = 'block';
+        }
+      })();
+    </script>
+
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+

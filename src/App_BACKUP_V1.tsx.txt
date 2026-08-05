@@ -1,0 +1,698 @@
+import { useState, useEffect } from "react";
+import { Domicilio, CustomAppliance, PROVINCIAS_ARGENTINA } from "./types";
+import { calculateSolarSizing } from "./utils";
+import DatosGestion from "./components/DatosGestion";
+import ConfigTecnologia from "./components/ConfigTecnologia";
+import VistaIngenieria from "./components/VistaIngenieria";
+import ReporteModal from "./components/ReporteModal";
+import GalerioObrasModal from "./components/GalerioObrasModal";
+import PresupuestoModal from "./components/PresupuestoModal";
+import RederarLogo from "./components/RederarLogo";
+import { PhoneCall, X, Sun } from "lucide-react";
+
+export default function App() {
+  // Custom states for sharing and logo zoom modal view as requested
+  const [showLogoZoomModal, setShowLogoZoomModal] = useState<boolean>(false);
+
+  // 0. Custom Logo State matching user requirement (persisted online)
+  const [customLogo, setCustomLogo] = useState<string | null>(() => {
+    try {
+      return localStorage.getItem("rederar_custom_logo") || null;
+    } catch {
+      return null;
+    }
+  });
+
+  // 1. Client Domicilio info state (Empty initially as requested by user, with placeholders in UI)
+  const [domicilio, setDomicilio] = useState<Domicilio>({
+    nombre: "",
+    apellido: "",
+    domicilio: "",
+    localidad: "",
+    provincia: ""
+  });
+
+  // Keep the last dimensioned applicant data to display in reports, quotes, and calculations
+  const [lastDimensionedDomicilio, setLastDimensionedDomicilio] = useState<Domicilio | null>(null);
+
+  // 2. Active technology selection (Starts as null so only applicant inputs are initially enabled)
+  const [techType, setTechType] = useState<"on-grid" | "off-grid" | "thermal" | null>(null);
+
+  // Active validation alert if they select technology without filling applicant details
+  const [showIncompleteAlert, setShowIncompleteAlert] = useState<boolean>(false);
+
+  // Check if applicant data is complete
+  const isApplicantDataComplete = 
+    domicilio.nombre.trim() !== "" && 
+    domicilio.apellido.trim() !== "" && 
+    domicilio.domicilio.trim() !== "" && 
+    domicilio.localidad.trim() !== "" && 
+    domicilio.provincia.trim() !== "";
+
+  const isFormAndTechSubmited = (isApplicantDataComplete || !!lastDimensionedDomicilio) && techType !== null;
+
+  // 3. Autonomy Days slider state (Default is 2 days)
+  const [autonomyDays, setAutonomyDays] = useState<number>(2);
+
+  // New States requested for advanced technology parameters
+  const [batteryType, setBatteryType] = useState<"gel" | "lithium">("gel");
+  const [batteryVoltage, setBatteryVoltage] = useState<12 | 24 | 48>(48);
+  const [solarCoverage, setSolarCoverage] = useState<number>(80);
+  const [thermalProfile, setThermalProfile] = useState<"familiar" | "intenso">("familiar");
+
+  // 4. Persons slider for Solar Thermal sizing (Default is 4 people)
+  const [personasCount, setPersonasCount] = useState<number>(4);
+
+  // Thermal specific questions states
+  const [waterHardness, setWaterHardness] = useState<"blanda" | "dura">("blanda");
+  const [hasMinors, setHasMinors] = useState<boolean>(false);
+  const [hasPressurizer, setHasPressurizer] = useState<boolean>(false);
+
+  // On-Grid Specific State (Starts empty, with a light example placeholder)
+  const [anualConsumptionKwh, setAnualConsumptionKwh] = useState<number | "">("");
+  const [placeholderValue, setPlaceholderValue] = useState<number>(3605);
+  const [gridPhaseType, setGridPhaseType] = useState<"monofasica" | "trifasica">("monofasica");
+
+  // 5. Custom load array list for autonomous (starts empty, customized by applicant)
+  const [appliances, setAppliances] = useState<CustomAppliance[]>([]);
+
+  // 9. Dimensioned status per technology (Starts false until the CTA button is clicked)
+  const [dimensioned, setDimensioned] = useState<{
+    "on-grid": boolean;
+    "off-grid": boolean;
+    "thermal": boolean;
+  }>({
+    "on-grid": false,
+    "off-grid": false,
+    "thermal": false
+  });
+
+  // Reset dimensioned states back to false whenever the user changes key calculations inputs
+  useEffect(() => {
+    setDimensioned((prev) => ({ ...prev, "on-grid": false }));
+  }, [anualConsumptionKwh, solarCoverage]);
+
+  useEffect(() => {
+    setDimensioned((prev) => ({ ...prev, "off-grid": false }));
+  }, [appliances, autonomyDays, batteryType, batteryVoltage]);
+
+  useEffect(() => {
+    setDimensioned((prev) => ({ ...prev, "thermal": false }));
+  }, [personasCount, waterHardness, hasMinors, hasPressurizer, thermalProfile]);
+
+  // Clear alert if they completely filled the form
+  useEffect(() => {
+    if (isApplicantDataComplete) {
+      setShowIncompleteAlert(false);
+    }
+  }, [isApplicantDataComplete]);
+
+  const handleResetToPointZero = () => {
+    setDomicilio({
+      nombre: "",
+      apellido: "",
+      domicilio: "",
+      localidad: "",
+      provincia: ""
+    });
+    setLastDimensionedDomicilio(null);
+    setTechType(null);
+    setAnualConsumptionKwh("");
+    setPlaceholderValue(3605);
+    setGridPhaseType("monofasica");
+    setAppliances([]);
+    setAutonomyDays(2);
+    setBatteryType("gel");
+    setBatteryVoltage(48);
+    setSolarCoverage(80);
+    setThermalProfile("familiar");
+    setPersonasCount(4);
+    setWaterHardness("blanda");
+    setHasMinors(false);
+    setHasPressurizer(false);
+    setDimensioned({
+      "on-grid": false,
+      "off-grid": false,
+      "thermal": false
+    });
+    setShowIncompleteAlert(false);
+  };
+
+  // Trial limits and unlock mechanism
+  const [dimensionCounts, setDimensionCounts] = useState<{ "on-grid": number; "off-grid": number; "thermal": number }>(() => {
+    try {
+      const saved = localStorage.getItem("rederar_dimension_counts");
+      return saved ? JSON.parse(saved) : { "on-grid": 0, "off-grid": 0, "thermal": 0 };
+    } catch {
+      return { "on-grid": 0, "off-grid": 0, "thermal": 0 };
+    }
+  });
+
+  const [isUnlocked, setIsUnlocked] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem("rederar_unlocked") === "true";
+    } catch {
+      return false;
+    }
+  });
+
+  const [showUnlockModal, setShowUnlockModal] = useState(false);
+  const [pendingTechType, setPendingTechType] = useState<"on-grid" | "off-grid" | "thermal" | null>(null);
+  const [unlockCodeInput, setUnlockCodeInput] = useState("");
+  const [unlockError, setUnlockError] = useState("");
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("rederar_dimension_counts", JSON.stringify(dimensionCounts));
+    } catch (e) {
+      console.error(e);
+    }
+  }, [dimensionCounts]);
+
+  const handleUnlockSubmit = () => {
+    const cleanCode = unlockCodeInput.trim().toUpperCase();
+    if (cleanCode === "VEKO2026TAVO") {
+      setIsUnlocked(true);
+      try {
+        localStorage.setItem("rederar_unlocked", "true");
+      } catch (err) {}
+      setShowUnlockModal(false);
+      setPendingTechType(null);
+      setUnlockCodeInput("");
+      setUnlockError("");
+      
+      // Instantly trigger dimensioned state for the pending type
+      if (pendingTechType) {
+        setDimensioned((prev) => ({ ...prev, [pendingTechType]: true }));
+        const updatedDomicilio = {
+          nombre: domicilio.nombre.trim(),
+          apellido: domicilio.apellido.trim(),
+          domicilio: domicilio.domicilio.trim(),
+          localidad: domicilio.localidad.trim(),
+          provincia: domicilio.provincia.trim()
+        };
+        setLastDimensionedDomicilio(updatedDomicilio);
+        setDomicilio({
+          nombre: "",
+          apellido: "",
+          domicilio: "",
+          localidad: "",
+          provincia: ""
+        });
+      }
+      alert("✅ ¡Sistema activado con éxito! Se ha habilitado la versión ilimitada.");
+    } else if (cleanCode === "RESETPRUEBA") {
+      // Secret reset code
+      const resetCounts = { "on-grid": 0, "off-grid": 0, "thermal": 0 };
+      setDimensionCounts(resetCounts);
+      try {
+        localStorage.setItem("rederar_dimension_counts", JSON.stringify(resetCounts));
+      } catch (err) {}
+      setUnlockCodeInput("");
+      setUnlockError("");
+      setShowUnlockModal(false);
+      setPendingTechType(null);
+      alert("🔄 Se han restablecido todos los contadores de dimensionamiento de prueba a 0.");
+    } else if (!cleanCode) {
+      setUnlockError("Por favor ingrese un código.");
+    } else {
+      setUnlockError("Código de activación inválido.");
+    }
+  };
+
+  const handleTechTypeChange = (type: "on-grid" | "off-grid" | "thermal" | null) => {
+    setTechType(type);
+    if (type !== null && !isApplicantDataComplete) {
+      setShowIncompleteAlert(true);
+    }
+  };
+
+  // 6. Modal Open/Close states
+  const [isReporteOpen, setIsReporteOpen] = useState(false);
+  const [isGalerioObraOpen, setIsGalerioObraOpen] = useState(false);
+  const [isPresupuestoOpen, setIsPresupuestoOpen] = useState(false);
+
+  // 7. Dynamic HSP derived state
+  const [hsp, setHsp] = useState<number>(4.2); // Default is Entre Rios
+
+  // Dynamic evaluation of HSP based on active province selection
+  useEffect(() => {
+    const provName = lastDimensionedDomicilio?.provincia || domicilio.provincia;
+    const selectedProv = PROVINCIAS_ARGENTINA.find(
+      (p) => p.name.toLowerCase() === provName.toLowerCase()
+    );
+    if (selectedProv) {
+      setHsp(selectedProv.hsp);
+    } else {
+      setHsp(4.2); // Default fallback
+    }
+  }, [domicilio.provincia, lastDimensionedDomicilio]);
+
+  // 8. Run calculations dynamically through our utility engine
+  const sizing = calculateSolarSizing(
+    appliances,
+    autonomyDays,
+    hsp,
+    techType,
+    personasCount,
+    anualConsumptionKwh || placeholderValue,
+    gridPhaseType,
+    waterHardness,
+    hasMinors,
+    hasPressurizer,
+    batteryType,
+    batteryVoltage,
+    solarCoverage,
+    thermalProfile
+  );
+
+  return (
+    <div className="h-screen w-full bg-black text-white flex flex-col font-sans selection:bg-amber-500/30 selection:text-white overflow-hidden">
+      
+      {/* HEADER SECTION - Completely Centered Style with larger logo */}
+      <header className="bg-black border-b-2 border-amber-500 px-6 py-1.5 flex flex-col justify-center items-center gap-1.5 shrink-0 z-40 shadow-sm text-center w-full">
+        
+        {/* Logo and Title Group Centered Side-by-Side (Horizontal Layout always with logo on the left) */}
+        <div className="flex flex-row items-center justify-center gap-4 sm:gap-5 max-w-6xl w-full flex-wrap sm:flex-nowrap">
+          
+          {/* Logo - precisely sized to 100px width on the left side of the title */}
+          <button
+            onClick={() => setShowLogoZoomModal(true)}
+            className="shrink-0 flex items-center justify-center w-[100px] h-[72px] transition-all duration-300 hover:scale-[1.03] active:scale-[0.98] cursor-pointer focus:outline-none relative group"
+            title="Tocar para ampliar logo"
+            id="btn_header_logo_zoom"
+          >
+            {customLogo ? (
+              <img src={customLogo} alt="Logo" className="w-full h-full object-contain" referrerPolicy="no-referrer" />
+            ) : (
+              <RederarLogo className="w-full h-full" />
+            )}
+            <div className="absolute inset-0 bg-amber-500/5 rounded-2xl transition-colors" />
+          </button>
+ 
+          <div className="flex flex-col items-center sm:items-start text-center sm:text-left">
+            <div className="flex flex-col sm:flex-row items-center sm:items-baseline justify-center sm:justify-start gap-x-2">
+              <span className="text-base sm:text-lg md:text-xl lg:text-2xl font-black tracking-widest text-yellow-400 font-sans">
+                Calculadora Solar REDERAR.app
+              </span>
+            </div>
+            
+            <div className="mt-0 font-black text-amber-400 text-[10px] md:text-xs uppercase tracking-widest">
+              SU ASESOR TÉCNICO VIRTUAL
+            </div>
+
+            <p className="text-[8px] sm:text-[9px] md:text-[10px] lg:text-xs font-black uppercase tracking-widest text-yellow-500 mt-0.5 font-mono">
+              Red Argentina de Energías Renovables
+            </p>
+ 
+            {/* Nestled WhatsApp info with a small, clean gap */}
+            <div className="flex flex-col sm:flex-row items-center sm:items-center gap-y-0.5 gap-x-2 mt-1 justify-center sm:justify-start select-none flex-wrap">
+              <a
+                href="https://wa.me/543434802264"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#25D366]/10 border border-[#25D366]/40 text-[9px] font-sans font-black text-[#25D366] hover:bg-[#25D366]/20 transition-all duration-300 cursor-pointer shrink-0 shadow-[0_0_15px_rgba(37,211,102,0.05)] hover:shadow-[0_0_20px_rgba(37,211,102,0.15)] hover:scale-[1.03]"
+                id="header_whatsapp_pill"
+              >
+                {/* WhatsApp Icon representation */}
+                <svg className="w-2.5 h-2.5 fill-[#25D366]" viewBox="0 0 24 24">
+                  <path d="M12.012 2c-5.506 0-9.989 4.478-9.99 9.984a9.964 9.964 0 001.333 4.993L2 22l5.13-1.347a9.96 9.96 0 004.887 1.28h.005c5.505 0 9.99-4.478 9.99-9.984A9.917 9.917 0 0012.012 2zm5.727 14.123c-.244.688-1.427 1.254-1.966 1.309-.49.05-1.125.076-1.8-.146a8.55 8.55 0 01-3.64-2.285 9.41 9.41 0 01-2.45-3.87c-.303-.896-.448-1.537-.146-2.115.3-.578 1.109-1.224 1.303-1.432.193-.208.381-.208.5-.208a.333.333 0 01.318.172c.11.233.7.1.84.28a3.172 3.172 0 01.196.53c-.04.167-.19.34-.303.49-.11.152-.25.253-.1.49a6.042 6.042 0 001.8 1.93 5.412 5.412 0 002.43 1.2 1.341 1.341 0 001.4-.1c.315-.365.655-.957.915-1.3.26-.34.545-.19.923-.058.378.132 2.384 1.125 2.455 1.28.11.242-.25.432-.435.696z" />
+                </svg>
+                <span>+54 343 4802264</span>
+              </a>
+ 
+              <p className="text-[8px] text-yellow-500 uppercase tracking-widest font-mono font-black mt-0">
+                SISTEMA DE DIMENSIONAMIENTO INICIAL
+              </p>
+            </div>
+          </div>
+ 
+        </div>
+      </header>
+
+      {/* CORE BODY GRID CONTENT - Dynamic columns depending on unlocking of dimensioning */}
+      <main className={`flex-1 p-4 w-full grid gap-4 items-stretch overflow-y-auto max-w-none transition-all duration-300 ${
+        isFormAndTechSubmited ? "grid-cols-3" : "grid-cols-2"
+      }`}>
+        
+        {/* Column 1: Datos de Gestión (Form and validation checks) */}
+        <section className="h-auto md:h-full min-h-0">
+          <DatosGestion
+            domicilio={domicilio}
+            setDomicilio={setDomicilio}
+            hsp={hsp}
+            techType={techType}
+          />
+        </section>
+
+        {/* Column 2: Configuración y Tipo de Tecnología (Tab switching and sizing metrics) */}
+        <section className="h-auto md:h-full min-h-0">
+          <ConfigTecnologia
+            techType={techType}
+            setTechType={handleTechTypeChange}
+            showIncompleteAlert={showIncompleteAlert}
+            domicilio={domicilio}
+            appliances={appliances}
+            setAppliances={setAppliances}
+            autonomyDays={autonomyDays}
+            setAutonomyDays={setAutonomyDays}
+            batteryType={batteryType}
+            setBatteryType={setBatteryType}
+            batteryVoltage={batteryVoltage}
+            setBatteryVoltage={setBatteryVoltage}
+            solarCoverage={solarCoverage}
+            setSolarCoverage={setSolarCoverage}
+            thermalProfile={thermalProfile}
+            setThermalProfile={setThermalProfile}
+            personasCount={personasCount}
+            setPersonasCount={setPersonasCount}
+            waterHardness={waterHardness}
+            setWaterHardness={setWaterHardness}
+            hasMinors={hasMinors}
+            setHasMinors={setHasMinors}
+            hasPressurizer={hasPressurizer}
+            setHasPressurizer={setHasPressurizer}
+            sizing={sizing}
+            onOpenPresupuesto={() => setIsPresupuestoOpen(true)}
+            anualConsumptionKwh={anualConsumptionKwh}
+            setAnualConsumptionKwh={setAnualConsumptionKwh}
+            gridPhaseType={gridPhaseType}
+            setGridPhaseType={setGridPhaseType}
+            placeholderValue={placeholderValue}
+            setPlaceholderValue={setPlaceholderValue}
+            isDimensioned={techType ? dimensioned[techType] : false}
+            onSetDimensioned={(val) => {
+              if (techType) {
+                if (val) {
+                  if (!isApplicantDataComplete) {
+                    setShowIncompleteAlert(true);
+                    return;
+                  }
+
+                  // Check trial limits
+                  if (!isUnlocked) {
+                    const currentCount = dimensionCounts[techType];
+                    if (currentCount >= 3) {
+                      setPendingTechType(techType);
+                      setUnlockCodeInput("");
+                      setUnlockError("");
+                      setShowUnlockModal(true);
+                      return;
+                    } else {
+                      setDimensionCounts((prev) => ({ ...prev, [techType]: prev[techType] + 1 }));
+                    }
+                  }
+
+                  const updatedDomicilio = {
+                    nombre: domicilio.nombre.trim(),
+                    apellido: domicilio.apellido.trim(),
+                    domicilio: domicilio.domicilio.trim(),
+                    localidad: domicilio.localidad.trim(),
+                    provincia: domicilio.provincia.trim()
+                  };
+                  setDomicilio({
+                    nombre: "",
+                    apellido: "",
+                    domicilio: "",
+                    localidad: "",
+                    provincia: ""
+                  });
+                  setShowIncompleteAlert(false);
+                  setDimensioned((prev) => ({ ...prev, [techType]: true }));
+                  setLastDimensionedDomicilio(updatedDomicilio);
+                } else {
+                  setDimensioned((prev) => ({ ...prev, [techType]: false }));
+                }
+              }
+            }}
+            onResetToPointZero={handleResetToPointZero}
+          />
+        </section>
+
+        {/* Column 3: Vista Previa de Ingeniería (Vector schematic active wires and action buttons) */}
+        {isFormAndTechSubmited && (
+          <section className="h-auto md:h-full min-h-0 animate-fade-in">
+            <VistaIngenieria
+              techType={techType}
+              sizing={sizing}
+              personasCount={personasCount}
+              onOpenReporte={() => setIsReporteOpen(true)}
+              onOpenGalerioObra={() => setIsGalerioObraOpen(true)}
+              onOpenPresupuesto={() => setIsPresupuestoOpen(true)}
+              isDimensioned={techType ? dimensioned[techType] : false}
+              domicilio={lastDimensionedDomicilio || domicilio}
+              hsp={hsp}
+              appliances={appliances}
+              autonomyDays={autonomyDays}
+              batteryType={batteryType}
+              batteryVoltage={batteryVoltage}
+              solarCoverage={solarCoverage}
+              thermalProfile={thermalProfile}
+              waterHardness={waterHardness}
+              hasMinors={hasMinors}
+              hasPressurizer={hasPressurizer}
+              anualConsumptionKwh={anualConsumptionKwh}
+              placeholderValue={placeholderValue}
+              gridPhaseType={gridPhaseType}
+            />
+          </section>
+        )}
+
+      </main>
+
+      {/* FOOTER GENERAL DE INFORMACIÓN - Pinned Bottom always visible on-screen */}
+      <footer className="bg-black py-3 px-4 border-t-2 border-amber-500 text-center font-sans text-[10.5px] text-yellow-500 space-y-0.5 shrink-0 z-40 shadow-sm">
+        <p className="text-yellow-500 font-extrabold">© {new Date().getFullYear()} REDERAR • Red Argentina de Energías Renovables. Todos los derechos reservados.</p>
+        <p className="text-yellow-500 text-[10px] font-bold">Software de dimensionamiento de energia solar para sistemas residenciales, rurales e industriales fotovoltaicos y/o térmicos.</p>
+        <p className="text-yellow-500 text-[9px] font-black tracking-wide">(Creador: Tec. Gustavo A. Rodriguez)</p>
+      </footer>
+
+      {/* MODALS RENDERING PORTALS */}
+      {techType && (
+        <ReporteModal
+          isOpen={isReporteOpen}
+          onClose={() => setIsReporteOpen(false)}
+          domicilio={lastDimensionedDomicilio || domicilio}
+          hsp={hsp}
+          techType={techType}
+          sizing={sizing}
+          appliances={appliances}
+          personasCount={personasCount}
+          customLogo={customLogo}
+        />
+      )}
+
+      <GalerioObrasModal
+        isOpen={isGalerioObraOpen}
+        onClose={() => setIsGalerioObraOpen(false)}
+      />
+
+      {techType && (
+        <PresupuestoModal
+          isOpen={isPresupuestoOpen}
+          onClose={() => setIsPresupuestoOpen(false)}
+          domicilio={lastDimensionedDomicilio || domicilio}
+          hsp={hsp}
+          techType={techType}
+          sizing={sizing}
+          appliances={appliances}
+          personasCount={personasCount}
+        />
+      )}
+
+      {/* GORGEOUS LOGO ZOOM AND SAVE DETAILS MODAL */}
+      {showLogoZoomModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-fade-in text-center">
+          <div className="bg-white border-2 border-emerald-500 rounded-2xl max-w-lg w-full overflow-hidden shadow-2xl flex flex-col">
+            
+            {/* Modal Header */}
+            <div className="bg-gradient-to-r from-emerald-600 to-teal-700 p-4 flex items-center justify-between text-white">
+              <div className="flex items-center gap-2">
+                <Sun className="w-5 h-5 text-white animate-spin-slow" />
+                <span className="font-sans font-black text-xs uppercase tracking-wider">Logo de REDERAR</span>
+              </div>
+              <button 
+                onClick={() => setShowLogoZoomModal(false)}
+                className="p-1.5 hover:bg-white/10 rounded-full transition-colors cursor-pointer text-white"
+                title="Cerrar"
+                id="btn_close_logo_zoom"
+              >
+                <X className="w-5 h-5 font-bold" />
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-6 flex flex-col items-center justify-center space-y-6 text-center text-slate-800">
+              
+              <div className="bg-slate-50 border border-emerald-500/20 p-6 rounded-2xl w-[275px] h-[200px] flex items-center justify-center shadow-inner">
+                {customLogo ? (
+                  <img src={customLogo} alt="Logo" className="w-full h-full object-contain" referrerPolicy="no-referrer" />
+                ) : (
+                  <RederarLogo className="w-full h-full" />
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <h3 className="text-xl font-sans font-black text-[#8B6508] tracking-tight">REDERAR Energías Renovables</h3>
+                <p className="text-xs text-slate-655 leading-relaxed max-w-md">
+                  Este es el logo representativo de la Red Argentina de Energías Renovables. Puedes usar nuestro logo vectorizado o cargar tu propio archivo <strong className="text-[#8B6508]">.png sin fondo (transparente)</strong> para personalizar la calculadora.
+                </p>
+              </div>
+
+              {/* Upload & Reset Controls */}
+              <div className="w-full border-t border-b border-slate-200 py-4 flex flex-col sm:flex-row gap-3">
+                <label className="flex-1 py-2 px-3 rounded-xl border border-dashed border-emerald-500/40 hover:border-emerald-500 bg-emerald-50 hover:bg-emerald-100/50 text-emerald-700 text-xs font-bold uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-2">
+                  <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+                  </svg>
+                  <span>Cargar Logo PNG</span>
+                  <input
+                    type="file"
+                    accept="image/png, image/jpeg"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        const reader = new FileReader();
+                        reader.onloadend = () => {
+                          const resultStr = reader.result as string;
+                          setCustomLogo(resultStr);
+                          try {
+                            localStorage.setItem("rederar_custom_logo", resultStr);
+                          } catch (err) {
+                            console.error("No se pudo guardar en localStorage por límite de tamaño", err);
+                          }
+                        };
+                        reader.readAsDataURL(file);
+                      }
+                    }}
+                  />
+                </label>
+
+                {customLogo && (
+                  <button
+                    onClick={() => {
+                      setCustomLogo(null);
+                      try {
+                        localStorage.removeItem("rederar_custom_logo");
+                      } catch (err) {}
+                    }}
+                    className="py-2 px-4 rounded-xl border border-red-500/30 hover:border-red-500 bg-red-50/5 hover:bg-red-50 text-red-600 text-xs font-bold uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-2"
+                  >
+                    <span>Restaurar Original</span>
+                  </button>
+                )}
+              </div>
+
+              {/* Action Buttons in Modal */}
+              <div className="w-full">
+                <button
+                  onClick={() => setShowLogoZoomModal(false)}
+                  className="w-full py-2.5 rounded-xl border border-slate-300 bg-slate-100 hover:bg-slate-200 text-slate-800 font-extrabold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  <span>Cerrar</span>
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      )}
+
+      {/* 14. MODAL PARA DESBLOQUEAR SISTEMA (Trial limit check) */}
+      {showUnlockModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/85 backdrop-blur-md p-4 overflow-y-auto animate-fade-in">
+          <div className="bg-zinc-950 border border-yellow-500/50 rounded-2xl max-w-md w-full p-6 shadow-[0_0_50px_rgba(234,179,8,0.25)] flex flex-col gap-4 text-white my-8">
+            
+            {/* Header */}
+            <div className="flex items-center gap-3 border-b border-dashed border-zinc-800 pb-3">
+              <div className="p-2.5 bg-yellow-500/10 rounded-xl text-yellow-500 border border-yellow-500/30">
+                <Sun className="w-6 h-6 animate-pulse" />
+              </div>
+              <div className="text-left">
+                <h3 className="text-sm font-black tracking-wider uppercase text-yellow-400 font-sans">
+                  Límite de Prueba Alcanzado
+                </h3>
+                <p className="text-[10px] text-zinc-400 font-bold font-mono uppercase">
+                  Acceso Comercial Ilimitado
+                </p>
+              </div>
+            </div>
+
+            {/* Description */}
+            <div className="space-y-2 text-xs leading-relaxed text-zinc-300 font-bold text-left">
+              <p>
+                Has agotado los <span className="text-yellow-400 font-extrabold">3 dimensionamientos de prueba gratuitos</span> permitidos para la tecnología <span className="text-yellow-400 font-extrabold uppercase">{pendingTechType === "on-grid" ? "On-Grid (Red)" : pendingTechType === "off-grid" ? "Off-Grid (Autónomo)" : "Térmica (Colector)"}</span>.
+              </p>
+              <p className="text-zinc-400 text-[10.5px] font-sans leading-normal">
+                Para desbloquear el uso profesional ilimitado de la Calculadora Solar de REDERAR, ingrese el código de activación provisto por la administración comercial.
+              </p>
+            </div>
+
+            {/* Input Activation Code */}
+            <div className="bg-zinc-900/50 border border-zinc-800 p-4 rounded-xl flex flex-col gap-2 text-left">
+              <label className="text-[10px] uppercase font-mono font-black text-yellow-500 block">
+                CÓDIGO DE ACTIVACIÓN REDERAR:
+              </label>
+              
+              <div className="relative mt-1">
+                <input
+                  type="password"
+                  placeholder="INGRESE EL CÓDIGO DE DESBLOQUEO..."
+                  value={unlockCodeInput}
+                  onChange={(e) => {
+                    setUnlockCodeInput(e.target.value);
+                    setUnlockError("");
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      handleUnlockSubmit();
+                    }
+                  }}
+                  className="w-full bg-black border border-zinc-800 rounded-lg py-2 px-3 text-xs font-black font-mono tracking-widest text-center text-yellow-400 focus:outline-none focus:border-yellow-500 transition-all uppercase"
+                />
+              </div>
+              {unlockError && (
+                <p className="text-[10px] text-red-500 font-bold font-mono text-center mt-0.5">
+                  ⚠️ {unlockError}
+                </p>
+              )}
+            </div>
+
+            {/* Buttons */}
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowUnlockModal(false);
+                  setPendingTechType(null);
+                  setUnlockCodeInput("");
+                  setUnlockError("");
+                }}
+                className="py-2 px-4 rounded-xl border border-zinc-800 hover:border-zinc-700 bg-zinc-900 text-zinc-400 font-black text-xs uppercase tracking-wider transition-all cursor-pointer text-center"
+              >
+                Volver
+              </button>
+              <button
+                type="button"
+                onClick={handleUnlockSubmit}
+                className="py-2 px-4 rounded-xl bg-yellow-500 hover:bg-yellow-400 text-black font-black text-xs uppercase tracking-wider transition-all cursor-pointer shadow-lg text-center"
+              >
+                Activar Ahora
+              </button>
+            </div>
+
+            {/* Support info */}
+            <p className="text-[9px] text-zinc-500 text-center font-bold font-mono border-t border-zinc-900 pt-3 flex items-center justify-center gap-1">
+              <PhoneCall className="w-3.5 h-3.5 text-zinc-500" /> Soporte Técnico REDERAR: info@rederar.com.ar
+            </p>
+
+          </div>
+        </div>
+      )}
+
+
+
+    </div>
+  );
+}
