@@ -54,7 +54,13 @@
 }
 
 /* Standardized responsive body and smooth scrolling setup */
+:root {
+  color-scheme: dark !important;
+  supported-color-schemes: dark !important;
+}
+
 html, body {
+  color-scheme: dark !important;
   background-color: #000000;
   color: #ffffff;
   font-family: var(--font-sans);
@@ -73,5 +79,52 @@ input, select, textarea, button {
   font-family: inherit;
   font-size: inherit;
   line-height: inherit;
+}
+
+/* Fix for native select dropdown options across all browsers and operating systems (Windows, Android, Mac, iOS, WebView) */
+:root, html, body, select, option, optgroup {
+  color-scheme: dark !important;
+  supported-color-schemes: dark !important;
+}
+
+select {
+  color-scheme: dark !important;
+  background-color: #000000 !important;
+  color: #ffffff !important;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+select option,
+select optgroup,
+option {
+  background-color: #09090b !important;
+  color: #f8fafc !important;
+  color-scheme: dark !important;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  font-family: var(--font-sans);
+}
+
+@-moz-document url-prefix() {
+  select, option {
+    background-color: #09090b !important;
+    color: #f8fafc !important;
+  }
+}
+
+select option:disabled,
+option:disabled {
+  background-color: #09090b !important;
+  color: #64748b !important;
+}
+
+select option:checked,
+select option:hover,
+select option:focus,
+option:checked {
+  background-color: #18181b !important;
+  color: #f59e0b !important;
 }
 

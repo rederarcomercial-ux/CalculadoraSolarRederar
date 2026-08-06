@@ -590,10 +590,11 @@ export default function ConfigTecnologia({
                     value={selectedPresetId}
                     onChange={(e) => handlePresetChange(e.target.value)}
                     className="w-full appearance-none rounded-xl bg-black border border-emerald-800 px-3 py-1.5 text-xs font-sans font-bold focus:outline-none focus:border-emerald-500 cursor-pointer pr-10 shadow-sm text-slate-100"
+                    style={{ colorScheme: 'dark', backgroundColor: '#000000', color: '#f8fafc' }}
                     id="select_preloaded_appliance"
                   >
                     {APPLIANCE_PRESETS.map((preset) => (
-                      <option key={preset.id} value={preset.id} className="bg-zinc-950 text-slate-100 font-sans font-bold text-xs">
+                      <option key={preset.id} value={preset.id} className="bg-zinc-950 text-slate-100 font-sans font-bold text-xs" style={{ backgroundColor: '#09090b', color: '#f8fafc' }}>
                         {getAppliancePresetName(preset.id, domicilio.pais)} {preset.powerW > 0 ? `(${preset.powerW}W)` : ""}
                       </option>
                     ))}
@@ -763,10 +764,11 @@ export default function ConfigTecnologia({
                   value={batteryType}
                   onChange={(e) => setBatteryType(e.target.value as "gel" | "lithium")}
                   className="w-full rounded-lg bg-black border border-emerald-800 px-2 py-1.5 text-xs font-sans font-bold text-slate-100 focus:outline-none focus:border-emerald-500 cursor-pointer"
+                  style={{ colorScheme: 'dark', backgroundColor: '#000000', color: '#f8fafc' }}
                   id="select_battery_type"
                 >
-                  <option value="gel">{getTranslation("bateria_gel_full", country)}</option>
-                  <option value="lithium">{getTranslation("bateria_litio_full", country)}</option>
+                  <option value="gel" className="bg-zinc-950 text-slate-100 font-sans font-bold text-xs" style={{ backgroundColor: '#09090b', color: '#f8fafc' }}>{getTranslation("bateria_gel_full", country)}</option>
+                  <option value="lithium" className="bg-zinc-950 text-slate-100 font-sans font-bold text-xs" style={{ backgroundColor: '#09090b', color: '#f8fafc' }}>{getTranslation("bateria_litio_full", country)}</option>
                 </select>
               </div>
 
@@ -778,11 +780,12 @@ export default function ConfigTecnologia({
                   value={batteryVoltage}
                   onChange={(e) => setBatteryVoltage(Number(e.target.value) as 12 | 24 | 48)}
                   className="w-full rounded-lg bg-black border border-emerald-800 px-2 py-1.5 text-xs font-sans font-bold text-slate-100 focus:outline-none focus:border-emerald-500 cursor-pointer"
+                  style={{ colorScheme: 'dark', backgroundColor: '#000000', color: '#f8fafc' }}
                   id="select_battery_voltage"
                 >
-                  <option value={12}>{getTranslation("tension_12v", country)}</option>
-                  <option value={24}>{getTranslation("tension_24v", country)}</option>
-                  <option value={48}>{getTranslation("tension_48v", country)}</option>
+                  <option value={12} className="bg-zinc-950 text-slate-100 font-sans font-bold text-xs" style={{ backgroundColor: '#09090b', color: '#f8fafc' }}>{getTranslation("tension_12v", country)}</option>
+                  <option value={24} className="bg-zinc-950 text-slate-100 font-sans font-bold text-xs" style={{ backgroundColor: '#09090b', color: '#f8fafc' }}>{getTranslation("tension_24v", country)}</option>
+                  <option value={48} className="bg-zinc-950 text-slate-100 font-sans font-bold text-xs" style={{ backgroundColor: '#09090b', color: '#f8fafc' }}>{getTranslation("tension_48v", country)}</option>
                 </select>
               </div>
             </div>
@@ -895,10 +898,11 @@ export default function ConfigTecnologia({
                       setTouchedThermal(true);
                     }}
                     className="w-full rounded-lg bg-black border border-emerald-800 px-2 py-1.5 text-xs font-sans font-bold text-slate-100 focus:outline-none focus:border-emerald-500 cursor-pointer"
+                    style={{ colorScheme: 'dark', backgroundColor: '#000000', color: '#f8fafc' }}
                     id="select_thermal_profile"
                   >
-                    <option value="familiar">{getTranslation("perfil_familiar_50l", country)}</option>
-                    <option value="intenso">{getTranslation("perfil_intenso_80l", country)}</option>
+                    <option value="familiar" className="bg-zinc-950 text-slate-100 font-sans font-bold text-xs" style={{ backgroundColor: '#09090b', color: '#f8fafc' }}>{getTranslation("perfil_familiar_50l", country)}</option>
+                    <option value="intenso" className="bg-zinc-950 text-slate-100 font-sans font-bold text-xs" style={{ backgroundColor: '#09090b', color: '#f8fafc' }}>{getTranslation("perfil_intenso_80l", country)}</option>
                   </select>
                 </div>
 

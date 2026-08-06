@@ -118,10 +118,11 @@ export default function DatosGestion({
                 value={domicilio.pais || "Argentina"}
                 onChange={(e) => handleCountryChange(e.target.value)}
                 className="w-full appearance-none rounded-xl bg-black border border-emerald-800 px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-emerald-500 focus:bg-zinc-950 transition font-sans font-extrabold cursor-pointer pr-10 shadow-sm"
+                style={{ colorScheme: 'dark', backgroundColor: '#000000', color: '#f8fafc' }}
                 id="select_pais"
               >
                 {COUNTRIES_DATA.map((c) => (
-                  <option key={c.name} value={c.name} className="bg-zinc-950 text-slate-100 font-sans font-bold text-xs">
+                  <option key={c.name} value={c.name} className="bg-zinc-950 text-slate-100 font-sans font-bold text-xs" style={{ backgroundColor: '#09090b', color: '#f8fafc' }}>
                     {c.name}
                   </option>
                 ))}
@@ -144,11 +145,12 @@ export default function DatosGestion({
                 value={domicilio.provincia || ""}
                 onChange={(e) => handleInputChange("provincia", e.target.value)}
                 className={`w-full appearance-none rounded-xl bg-black border border-emerald-800 px-3 py-2 text-xs focus:outline-none focus:border-emerald-500 focus:bg-zinc-950 transition font-sans font-extrabold cursor-pointer pr-10 shadow-sm ${domicilio.provincia ? 'text-slate-100' : 'text-slate-500'}`}
+                style={{ colorScheme: 'dark', backgroundColor: '#000000', color: domicilio.provincia ? '#f8fafc' : '#64748b' }}
                 id="select_provincia"
               >
-                <option value="" disabled className="bg-black text-slate-500 font-bold font-sans">{getTranslation("select_provincia", domicilio.pais)}</option>
+                <option value="" disabled className="bg-black text-slate-500 font-bold font-sans" style={{ backgroundColor: '#09090b', color: '#64748b' }}>{getTranslation("select_provincia", domicilio.pais)}</option>
                 {provincias.map((prov) => (
-                  <option key={prov} value={prov} className="bg-zinc-950 text-slate-100 font-sans font-bold text-xs">
+                  <option key={prov} value={prov} className="bg-zinc-950 text-slate-100 font-sans font-bold text-xs" style={{ backgroundColor: '#09090b', color: '#f8fafc' }}>
                     {prov}
                   </option>
                 ))}
